@@ -26,11 +26,31 @@ export const alertesInitiales: Alerte[] = [
 ];
 
 // Trois scénarios contrôlés : aucune machine réelle n'est interrogée.
+
 export const scenarios = [
-  { titre: "CPU élevé", serveur: "web-prod-01", valeur: "92 %", gravite: "Critique" as const,
-    description: "Simulation : utilisation CPU à 92 % (seuil > 85 %)." },
-  { titre: "Mémoire RAM élevée", serveur: "db-test-02", valeur: "96 %", gravite: "Élevée" as const,
-    description: "Simulation : utilisation RAM à 96 % (seuil > 90 %)." },
-  { titre: "Serveur indisponible", serveur: "api-dev-03", valeur: "Hors ligne", gravite: "Critique" as const,
-    description: "Simulation : disponibilité égale à 0 (serveur hors ligne)." },
+  {
+    titre: "CPU élevé",
+    serveur: "server-web-01",
+    valeur: "95 %",
+    gravite: "Élevée" as const,
+    description:
+      "Simulation : CPU à 95 % sur le serveur ID 1.",
+  },
+  {
+    titre: "Mémoire RAM élevée",
+    serveur: "server-web-01",
+    valeur: "96 %",
+    gravite: "Élevée" as const,
+    description:
+      "Simulation : RAM à 96 % sur le serveur ID 1.",
+  },
+  {
+    titre: "Serveur indisponible",
+    serveur: "server-web-01",
+    valeur: "Hors ligne",
+    gravite: "Critique" as const,
+    description:
+      "Simulation : disponibilité du serveur ID 1 égale à false.",
+  },
 ];
+

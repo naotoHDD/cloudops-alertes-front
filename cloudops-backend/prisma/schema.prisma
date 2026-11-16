@@ -1,0 +1,191 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  DEVOPS
+  VIEWER
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(VIEWER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  projectMembers ProjectMember[]
+}
+
+
+model Team {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects  Project[]
+}
+
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  members ProjectMember[]
+  environments Environment[]
+  servers Server[]
+  teamId Int?
+  team   Team? @relation(fields: [teamId], references: [id])
+}
+
+model ProjectMember {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  projectId Int
+  joinedAt  DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  project   Project  @relation(fields: [projectId], references: [id])
+
+  @@unique([userId, projectId])
+}
+
+model Environment {
+  id        Int      @id @default(autoincrement())
+  name      String
+  projectId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project  @relation(fields: [projectId], references: [id])
+
+  @@unique([projectId, name])
+  applications Application[]
+}
+
+enum ServerStatus {
+  ONLINE
+  OFFLINE
+  MAINTENANCE
+}
+
+model Server {
+  id        Int          @id @default(autoincrement())
+  name      String
+  provider  String
+  region    String
+  cpu       Int
+  ram       Int
+  storage   Int
+  ipAddress String
+  status    ServerStatus @default(OFFLINE)
+
+  cpuThreshold Float @default(85)
+  ramThreshold Float @default(90)
+
+
+  projectId Int
+  project   Project      @relation(fields: [projectId], references: [id])
+
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  applications Application[]
+  metrics Metric[]
+  alerts Alert[]
+}
+
+enum ApplicationStatus {
+  RUNNING
+  STOPPED
+  ERROR
+}
+
+model Application {
+  id            Int               @id @default(autoincrement())
+  name          String
+  version       String
+  status        ApplicationStatus @default(STOPPED)
+
+  serverId      Int
+  environmentId Int
+
+  server        Server            @relation(fields: [serverId], references: [id])
+  environment   Environment       @relation(fields: [environmentId], references: [id])
+
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
+
+model Metric {
+  id        Int      @id @default(autoincrement())
+  cpu       Float
+  ram       Float
+  available Boolean  @default(true)
+  timestamp DateTime @default(now())
+
+  serverId  Int
+  server    Server   @relation(fields: [serverId], references: [id])
+
+  @@index([serverId, timestamp])
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertStatus {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+}
+
+model Alert {
+  id          Int           @id @default(autoincrement())
+  title       String
+  description String?
+  severity    AlertSeverity @default(MEDIUM)
+  status      AlertStatus   @default(NEW)
+
+  serverId    Int
+  server      Server        @relation(fields: [serverId], references: [id])
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  history IncidentHistory[]
+}
+
+model IncidentHistory {
+  id        Int      @id @default(autoincrement())
+  action    String
+  oldStatus AlertStatus?
+  newStatus AlertStatus
+  createdAt DateTime @default(now())
+
+  alertId   Int
+  alert     Alert    @relation(fields: [alertId], references: [id])
+
+  @@index([alertId, createdAt])
+}
+
+
+
+
